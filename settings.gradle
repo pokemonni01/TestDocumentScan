@@ -1,2 +1,2 @@
-include ':app', ':cvscanner'
+include ':app', ':cvscanner', ':kdocscan'
 rootProject.name='Test Document Scan'
