@@ -33,4 +33,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    // cv doc
+    implementation 'com.google.android.gms:play-services-vision:19.0.0'
+    implementation 'online.devliving:mobilevision-pipeline:1.0.7'
+    implementation 'org.opencv:OpenCV-Android:3.1.0'
+    implementation "androidx.exifinterface:exifinterface:1.1.0"
 }
