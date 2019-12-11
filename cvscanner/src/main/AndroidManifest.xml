@@ -14,11 +14,13 @@
         <activity android:name=".DocumentScannerActivity"
             android:theme="@style/CVScannerTheme"
             android:configChanges="orientation|screenSize"
+            android:exported="true"
             />
 
         <activity android:name=".crop.CropImageActivity"
             android:theme="@style/CVScannerTheme"
             android:configChanges="orientation|screenSize"
+            android:exported="true"
             />
 
         <provider
