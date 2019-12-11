@@ -1,4 +1,4 @@
-package com.wachirapong.kdocscan.ui
+package com.wachirapong.kdocscan.ui.scanner
 
 import android.content.Context
 import android.content.Intent
@@ -19,7 +19,9 @@ class KDocScannerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_kdoc_scanner)
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.container, KDocScannerFragment.initInstance())
+            .replace(R.id.container,
+                KDocScannerFragment.initInstance()
+            )
             .addToBackStack(null)
             .commit()
     }
