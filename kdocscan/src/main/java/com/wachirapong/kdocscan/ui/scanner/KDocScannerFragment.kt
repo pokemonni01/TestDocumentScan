@@ -3,6 +3,7 @@ package com.wachirapong.kdocscan.ui.scanner
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.*
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,17 +17,15 @@ import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.data.Quadrilateral
 import com.wachirapong.kdocscan.ui.BaseFragment
 import com.wachirapong.kdocscan.util.ImageUtil
+import com.wachirapong.kdocscan.util.toBitMap
+import com.wachirapong.kdocscan.util.toMat
 import kotlinx.android.synthetic.main.fragment_kdoc_scanner.*
-import org.opencv.android.Utils
 import org.opencv.core.*
+import org.opencv.core.Point
 import org.opencv.imgproc.Imgproc
 import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList
-import android.graphics.*
-import com.wachirapong.kdocscan.util.toBitMap
-import com.wachirapong.kdocscan.util.toMat
-import org.opencv.core.Point
 
 
 class KDocScannerFragment : BaseFragment() {
@@ -81,20 +80,21 @@ class KDocScannerFragment : BaseFragment() {
                 setAnalyzer(ContextCompat.getMainExecutor(context),
                     ImageAnalysis.Analyzer { image, rotationDegrees ->
                         val original = ImageUtil.imageToBitmap(image.image!!, rotationDegrees.toFloat())
+                        val originalMat = Mat(Size(original.width.toDouble(), original.height.toDouble()), CvType.CV_8UC4)
+                        original.toMat(originalMat)
 
                         // bitmap to mat
                         val ratio = original.height.toDouble() / 500.0
-                        val width = image.width.toDouble() / ratio
-                        val height= image.height.toDouble() / ratio
+                        val width = original.width.toDouble() / ratio
+                        val height= original.height.toDouble() / ratio
                         size = Size(width, height)
-                        val originalMat = Mat(size, CvType.CV_8UC4)
-                        val preview = original.copy(Bitmap.Config.ARGB_8888, true)
-                        preview.toMat(originalMat)
+                        val resizedImage = Mat(size, CvType.CV_8UC4)
+                        Imgproc.resize(originalMat, resizedImage, size)
 
                         // Find EDGE
                         val grayScale = Mat(size, CvType.CV_8UC4)
                         val edged = Mat(size, CvType.CV_8UC1)
-                        edgeDetection(originalMat, grayScale, edged)
+                        edgeDetection(resizedImage, grayScale, edged)
 
                         // Find Contour
                         val contour: ArrayList<MatOfPoint> = findContour(edged)
@@ -102,16 +102,17 @@ class KDocScannerFragment : BaseFragment() {
                         // Find Quadrilateral
                         val quadrilateral = getQuadrilateral(contour)
 
-                        val previewImage = Mat(size, CvType.CV_8UC4)
-                        originalMat.copyTo(previewImage)
-                        Utils.matToBitmap(previewImage, preview)
+                        val preview = Bitmap.createBitmap(resizedImage.cols(), resizedImage.rows(), Bitmap.Config.ARGB_8888)
+                        resizedImage.toBitMap(preview)
+//                        Utils.matToBitmap(grayScale, preview)
                         if (quadrilateral != null) {
                             drawDocumentBox(quadrilateral.points, preview)
                         }
                         // END
                         (context as Activity).runOnUiThread {
                             // FOR TEST
-                            edged.toBitMap(preview)
+//                            Imgproc.drawContours(resizedImage, contour, -1, Scalar(0.0, 255.0, 0.0), 2)
+//                            Utils.matToBitmap(resizedImage, preview)
 
                             imageView.setImageBitmap(preview)
                         }
@@ -126,7 +127,7 @@ class KDocScannerFragment : BaseFragment() {
         // in the image
         Imgproc.cvtColor(picture, grayScale, Imgproc.COLOR_RGBA2GRAY, 4)
         Imgproc.GaussianBlur(grayScale, grayScale, Size(5.0, 5.0), 0.0)
-        Imgproc.Canny(picture, edged, 75.0, 200.0)
+        Imgproc.Canny(grayScale, edged, 75.0, 200.0)
     }
 
     private fun findContour(edged: Mat): ArrayList<MatOfPoint> {
@@ -163,11 +164,11 @@ class KDocScannerFragment : BaseFragment() {
             if (points.size == 4) {
 
                 val foundPoints = sortPoints(points)
+                return Quadrilateral(c, foundPoints)
 
-
-                if (insideArea(foundPoints)) {
-                    return Quadrilateral(c, foundPoints)
-                }
+//                if (insideArea(foundPoints)) {
+//                    return Quadrilateral(c, foundPoints)
+//                }
             }
         }
         return null
@@ -190,30 +191,30 @@ class KDocScannerFragment : BaseFragment() {
         // top-left corner = minimal sum
         result.add(0, Collections.min(srcPoints, sumComparator))
 
-        // top-right corner = minimal diference
-        result.add(1, Collections.min(srcPoints, diffComparator))
+        // bottom-left corner = maximal diference
+        result.add(1, Collections.max(srcPoints, diffComparator))
 
         // bottom-right corner = maximal sum
         result.add(2, Collections.max(srcPoints, sumComparator))
 
-        // bottom-left corner = maximal diference
-        result.add(3, Collections.max(srcPoints, diffComparator))
-
+        // top-right corner = minimal diference
+        result.add(3, Collections.min(srcPoints, diffComparator))
         return result
     }
 
     private fun insideArea(rp: List<Point>): Boolean {
 
         val width = size?.width ?: 0.0
-        val height = size?.width ?: 0.0
+        val height = size?.height ?: 0.0
         val baseMeasure = height / 4.0
 
         val bottomPos = height - baseMeasure
+        val topPos = baseMeasure
         val leftPos = width / 2 - baseMeasure
         val rightPos = width / 2 + baseMeasure
 
-        return (rp[0].x <= leftPos && rp[0].y <= baseMeasure
-                && rp[1].x >= rightPos && rp[1].y <= baseMeasure
+        return (rp[0].x <= leftPos && rp[0].y <= topPos
+                && rp[1].x >= rightPos && rp[1].y <= topPos
                 && rp[2].x >= rightPos && rp[2].y >= bottomPos
                 && rp[3].x <= leftPos && rp[3].y >= bottomPos)
     }
@@ -224,10 +225,10 @@ class KDocScannerFragment : BaseFragment() {
     ) {
         if (points == null) return
         val path = Path().apply {
-            moveTo(points[0].y.toFloat(), points[0].x.toFloat())
-            lineTo(points[1].y.toFloat(), points[1].x.toFloat())
-            lineTo(points[2].y.toFloat(), points[2].x.toFloat())
-            lineTo(points[3].y.toFloat(), points[3].x.toFloat())
+            moveTo(points[0].x.toFloat(), points[0].y.toFloat())
+            lineTo(points[1].x.toFloat(), points[1].y.toFloat())
+            lineTo(points[2].x.toFloat(), points[2].y.toFloat())
+            lineTo(points[3].x.toFloat(), points[3].y.toFloat())
             close()
         }
         val paint = Paint()
