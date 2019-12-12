@@ -3,7 +3,6 @@ package com.wachirapong.kdocscan.ui.scanner
 
 import android.app.Activity
 import android.content.Context
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -24,6 +23,8 @@ import org.opencv.imgproc.Imgproc
 import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList
+import android.graphics.*
+import org.opencv.core.Point
 
 
 class KDocScannerFragment : BaseFragment() {
@@ -97,14 +98,14 @@ class KDocScannerFragment : BaseFragment() {
 
                         val contour: ArrayList<MatOfPoint> = findContour(edged)
 
-                        val a = getQuadrilateral(contour)
+                        val quadrilateral = getQuadrilateral(contour)
 
-                        val imageWithContour = Mat(size, CvType.CV_8UC4)
-                        originalMat.copyTo(imageWithContour)
-                        if (a != null) {
-                            Imgproc.drawContours(imageWithContour, contour, -1, Scalar(0.0, 255.0, 0.0), 2)
+                        val previewImage = Mat(size, CvType.CV_8UC4)
+                        originalMat.copyTo(previewImage)
+                        Utils.matToBitmap(previewImage, bmp32)
+                        if (quadrilateral != null) {
+                            drawDocumentBox(quadrilateral.points, bmp32)
                         }
-                        Utils.matToBitmap(imageWithContour, bmp32)
                         // END
                         (context as Activity).runOnUiThread {
                             imageView.setImageBitmap(bmp32)
@@ -131,7 +132,7 @@ class KDocScannerFragment : BaseFragment() {
         return contours
     }
 
-    private fun getQuadrilateral(contours: ArrayList<MatOfPoint>): Mat? {
+    private fun getQuadrilateral(contours: ArrayList<MatOfPoint>): Quadrilateral? {
         // loop over the contours
         for (c in contours) {
             // approximate the contour
@@ -149,11 +150,11 @@ class KDocScannerFragment : BaseFragment() {
             if (points.size == 4) {
 
                 val foundPoints = sortPoints(points)
-//
-//                if (insideArea(foundPoints, size)) {
-//                    return Quadrilateral(c, foundPoints)
-//                }
-                return approx
+
+
+                if (insideArea(foundPoints)) {
+                    return Quadrilateral(c, foundPoints)
+                }
             }
         }
         return null
@@ -174,18 +175,52 @@ class KDocScannerFragment : BaseFragment() {
         }
 
         // top-left corner = minimal sum
-        result[0] = Collections.min(srcPoints, sumComparator)
-
-        // bottom-right corner = maximal sum
-        result[2] = Collections.max(srcPoints, sumComparator)
+        result.add(0, Collections.min(srcPoints, sumComparator))
 
         // top-right corner = minimal diference
-        result[1] = Collections.min(srcPoints, diffComparator)
+        result.add(1, Collections.min(srcPoints, diffComparator))
+
+        // bottom-right corner = maximal sum
+        result.add(2, Collections.max(srcPoints, sumComparator))
 
         // bottom-left corner = maximal diference
-        result[3] = Collections.max(srcPoints, diffComparator)
+        result.add(3, Collections.max(srcPoints, diffComparator))
 
         return result
+    }
+
+    private fun insideArea(rp: List<Point>): Boolean {
+
+        val width = size?.width ?: 0.0
+        val height = size?.width ?: 0.0
+        val baseMeasure = height / 4.0
+
+        val bottomPos = height - baseMeasure
+        val leftPos = width / 2 - baseMeasure
+        val rightPos = width / 2 + baseMeasure
+
+        return (rp[0].x <= leftPos && rp[0].y <= baseMeasure
+                && rp[1].x >= rightPos && rp[1].y <= baseMeasure
+                && rp[2].x >= rightPos && rp[2].y >= bottomPos
+                && rp[3].x <= leftPos && rp[3].y >= bottomPos)
+    }
+
+    private fun drawDocumentBox(
+        points: List<Point>?,
+        image: Bitmap
+    ) {
+        if (points == null) return
+        val path = Path().apply {
+            moveTo(points[0].y.toFloat(), points[0].x.toFloat())
+            lineTo(points[1].y.toFloat(), points[1].x.toFloat())
+            lineTo(points[2].y.toFloat(), points[2].x.toFloat())
+            lineTo(points[3].y.toFloat(), points[3].x.toFloat())
+            close()
+        }
+        val paint = Paint()
+        paint.color = Color.RED
+        val canvas = Canvas(image)
+        canvas.drawPath(path, paint)
     }
 }
 
