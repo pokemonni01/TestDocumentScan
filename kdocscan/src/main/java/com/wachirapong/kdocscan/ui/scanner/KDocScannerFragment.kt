@@ -148,7 +148,7 @@ class KDocScannerFragment : BaseFragment() {
             // select biggest 4 angles polygon
             if (points.size == 4) {
 
-//                val foundPoints = sortPoints(points)
+                val foundPoints = sortPoints(points)
 //
 //                if (insideArea(foundPoints, size)) {
 //                    return Quadrilateral(c, foundPoints)
@@ -159,5 +159,33 @@ class KDocScannerFragment : BaseFragment() {
         return null
     }
 
+    private fun sortPoints(src: List<Point>): List<Point> {
+
+        val srcPoints = ArrayList(src)
+
+        val result = arrayListOf<Point>()
+
+        val sumComparator = Comparator { lhs: Point, rhs: Point ->
+            (lhs.y + lhs.x).compareTo(rhs.y + rhs.x)
+        }
+
+        val diffComparator = Comparator { lhs: Point, rhs: Point ->
+            (lhs.y - lhs.x).compareTo(rhs.y - rhs.x)
+        }
+
+        // top-left corner = minimal sum
+        result[0] = Collections.min(srcPoints, sumComparator)
+
+        // bottom-right corner = maximal sum
+        result[2] = Collections.max(srcPoints, sumComparator)
+
+        // top-right corner = minimal diference
+        result[1] = Collections.min(srcPoints, diffComparator)
+
+        // bottom-left corner = maximal diference
+        result[3] = Collections.max(srcPoints, diffComparator)
+
+        return result
+    }
 }
 
