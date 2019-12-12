@@ -24,6 +24,8 @@ import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList
 import android.graphics.*
+import com.wachirapong.kdocscan.util.toBitMap
+import com.wachirapong.kdocscan.util.toMat
 import org.opencv.core.Point
 
 
@@ -81,39 +83,50 @@ class KDocScannerFragment : BaseFragment() {
                         val original = ImageUtil.imageToBitmap(image.image!!, rotationDegrees.toFloat())
 
                         // bitmap to mat
-                        size = Size(image.width.toDouble(), image.height.toDouble())
+                        val ratio = original.height.toDouble() / 500.0
+                        val width = image.width.toDouble() / ratio
+                        val height= image.height.toDouble() / ratio
+                        size = Size(width, height)
                         val originalMat = Mat(size, CvType.CV_8UC4)
-                        val bmp32 = original.copy(Bitmap.Config.ARGB_8888, true)
-                        Utils.bitmapToMat(bmp32, originalMat)
+                        val preview = original.copy(Bitmap.Config.ARGB_8888, true)
+                        preview.toMat(originalMat)
+
+                        // Find EDGE
                         val grayScale = Mat(size, CvType.CV_8UC4)
-                        val gaussianBlur = Mat(size, CvType.CV_8UC4)
-
-                        // convert the image to grayscale, blur it, and find edges
-                        // in the image
                         val edged = Mat(size, CvType.CV_8UC1)
-                        Imgproc.cvtColor(originalMat, grayScale, Imgproc.COLOR_RGBA2GRAY)
-                        Imgproc.GaussianBlur(grayScale, gaussianBlur, Size(5.0, 5.0), 0.0)
-                        Imgproc.Canny(originalMat, edged, 75.0, 200.0)
-                        Utils.matToBitmap(edged, bmp32)
+                        edgeDetection(originalMat, grayScale, edged)
 
+                        // Find Contour
                         val contour: ArrayList<MatOfPoint> = findContour(edged)
 
+                        // Find Quadrilateral
                         val quadrilateral = getQuadrilateral(contour)
 
                         val previewImage = Mat(size, CvType.CV_8UC4)
                         originalMat.copyTo(previewImage)
-                        Utils.matToBitmap(previewImage, bmp32)
+                        Utils.matToBitmap(previewImage, preview)
                         if (quadrilateral != null) {
-                            drawDocumentBox(quadrilateral.points, bmp32)
+                            drawDocumentBox(quadrilateral.points, preview)
                         }
                         // END
                         (context as Activity).runOnUiThread {
-                            imageView.setImageBitmap(bmp32)
+                            // FOR TEST
+                            edged.toBitMap(preview)
+
+                            imageView.setImageBitmap(preview)
                         }
                         image.close()
                     }
                 )
             }
+    }
+
+    private fun edgeDetection(picture: Mat, grayScale: Mat, edged: Mat) {
+        // convert the image to grayscale, blur it, and find edges
+        // in the image
+        Imgproc.cvtColor(picture, grayScale, Imgproc.COLOR_RGBA2GRAY, 4)
+        Imgproc.GaussianBlur(grayScale, grayScale, Size(5.0, 5.0), 0.0)
+        Imgproc.Canny(picture, edged, 75.0, 200.0)
     }
 
     private fun findContour(edged: Mat): ArrayList<MatOfPoint> {
