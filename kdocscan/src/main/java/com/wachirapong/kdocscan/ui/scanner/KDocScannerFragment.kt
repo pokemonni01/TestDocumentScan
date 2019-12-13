@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.data.Quadrilateral
+import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.BaseFragment
 import com.wachirapong.kdocscan.util.ImageUtil
 import com.wachirapong.kdocscan.util.toBitMap
@@ -28,6 +29,9 @@ import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 
 class KDocScannerFragment : BaseFragment() {
@@ -38,8 +42,8 @@ class KDocScannerFragment : BaseFragment() {
 
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
 
-    private var threshold1 = 75.0
-    private var threshold2 = 200.0
+    private var threshold1 = 50.0
+    private var threshold2 = 80.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -115,6 +119,7 @@ class KDocScannerFragment : BaseFragment() {
         }
     }
 
+    var ratio = 0.0
     private var size: Size? = null
 
     private fun getImageAnalysis(context: Context): ImageAnalysis {
@@ -129,7 +134,7 @@ class KDocScannerFragment : BaseFragment() {
                         original.toMat(originalMat)
 
                         // bitmap to mat
-                        val ratio = original.height.toDouble() / 500.0
+                        ratio = original.height.toDouble() / 500.0
                         val width = original.width.toDouble() / ratio
                         val height= original.height.toDouble() / ratio
                         size = Size(width, height)
@@ -149,8 +154,17 @@ class KDocScannerFragment : BaseFragment() {
 
                         val preview = Bitmap.createBitmap(resizedImage.cols(), resizedImage.rows(), Bitmap.Config.ARGB_8888)
                         resizedImage.toBitMap(preview)
+                        var croppedBitmap: Bitmap? = null
                         if (quadrilateral != null) {
                             drawDocumentBox(quadrilateral.points, preview)
+
+                            val fpt = fourPointTransform(originalMat, quadrilateral.points!!)
+                            if (isSameDocument(fpt)) {
+                                croppedBitmap = Bitmap.createBitmap(
+                                    fpt.cols(),
+                                    fpt.rows(), Bitmap.Config.ARGB_8888)
+                                fpt.toBitMap(croppedBitmap)
+                            }
                         }
                         // END
                         (context as Activity).runOnUiThread {
@@ -159,6 +173,9 @@ class KDocScannerFragment : BaseFragment() {
                             edged.toBitMap(previewEdge)
                             ivPreViewEdge.setImageBitmap(previewEdge)
                             ivPreViewDetect.setImageBitmap(preview)
+                            croppedBitmap?.let {
+                                ivCrop.setImageBitmap(it)
+                            }
                         }
                         image.close()
                     }
@@ -169,19 +186,22 @@ class KDocScannerFragment : BaseFragment() {
     private fun edgeDetection(picture: Mat, grayScale: Mat, edged: Mat) {
         // convert the image to grayscale, blur it, and find edges
         // in the image
-//        findCannyEdge(picture, grayScale, edged)
-        findThreshold(picture, grayScale, edged)
+        findCannyEdge(picture, grayScale, edged)
+//        findThreshold(picture, grayScale, edged)
     }
 
     private fun findCannyEdge(picture: Mat, grayScale: Mat, edged: Mat) {
-        Imgproc.cvtColor(picture, grayScale, Imgproc.COLOR_RGBA2GRAY, 4)
+        Imgproc.cvtColor(picture, grayScale, Imgproc.COLOR_BGR2GRAY, 4)
         Imgproc.GaussianBlur(grayScale, grayScale, Size(5.0, 5.0), 0.0)
         Imgproc.Canny(grayScale, edged, threshold1, threshold2)
+        Imgproc.adaptiveThreshold(edged, edged, 255.0, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 11, 2.0)
     }
 
     private fun findThreshold(picture: Mat, grayScale: Mat, edged: Mat) {
-        Imgproc.cvtColor(picture, grayScale, Imgproc.COLOR_RGBA2GRAY, 4)
-        Imgproc.threshold(grayScale, edged, threshold1, 255.0, Imgproc.THRESH_BINARY)
+        Imgproc.cvtColor(picture, grayScale, Imgproc.COLOR_BGRA2GRAY)
+//        Imgproc.GaussianBlur(grayScale, grayScale, Size(5.0, 5.0), 0.0)
+//        Imgproc.threshold(grayScale, edged, threshold1, 255.0, Imgproc.THRESH_BINARY + Imgproc.THRESH_OTSU)
+        Imgproc.adaptiveThreshold(grayScale, edged, 255.0, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 15, 4.0)
     }
 
     private fun findContour(edged: Mat): ArrayList<MatOfPoint> {
@@ -202,7 +222,12 @@ class KDocScannerFragment : BaseFragment() {
 
     private fun getQuadrilateral(contours: ArrayList<MatOfPoint>): Quadrilateral? {
         // loop over the contours
+        var biggest: Quadrilateral? = null
+        var maxArea = 0.0
         for (c in contours) {
+            val area = abs(Imgproc.contourArea(c))
+            // filter area less than 100
+            if(area < 1000) continue
             // approximate the contour
             val c2f = MatOfPoint2f()
             c.convertTo(c2f, CvType.CV_32FC2)
@@ -215,17 +240,13 @@ class KDocScannerFragment : BaseFragment() {
             // if our approximated contour has four points, then we
             // can assume that we have found our screen
             // select biggest 4 angles polygon
-            if (points.size == 4 && abs(Imgproc.contourArea(approx)) > 1000) {
-
+            if (points.size == 4 && area > maxArea) {
                 val foundPoints = sortPoints(points)
-                return Quadrilateral(c, foundPoints)
-
-//                if (insideArea(foundPoints)) {
-//                    return Quadrilateral(c, foundPoints)
-//                }
+                biggest = Quadrilateral(c, foundPoints)
+                maxArea = area
             }
         }
-        return null
+        return biggest
     }
 
     private fun sortPoints(src: List<Point>): List<Point> {
@@ -289,6 +310,79 @@ class KDocScannerFragment : BaseFragment() {
         paint.color = Color.RED
         val canvas = Canvas(image)
         canvas.drawPath(path, paint)
+    }
+
+    private fun fourPointTransform(src: Mat, pts: List<Point>): Mat {
+        val tl = pts[0]
+        val tr = pts[3]
+        val br = pts[2]
+        val bl = pts[1]
+
+        val widthA = sqrt((br.x - bl.x).pow(2.0) + (br.y - bl.y).pow(2.0))
+        val widthB = sqrt((tr.x - tl.x).pow(2.0) + (tr.y - tl.y).pow(2.0))
+
+        val dw = max(widthA, widthB) * ratio
+        val maxWidth = dw.toInt()
+
+
+        val heightA = sqrt((tr.x - br.x).pow(2.0) + (tr.y - br.y).pow(2.0))
+        val heightB = sqrt((tl.x - bl.x).pow(2.0) + (tl.y - bl.y).pow(2.0))
+
+        val dh = max(heightA, heightB) * ratio
+        val maxHeight = dh.toInt()
+
+        val doc = Mat(maxHeight, maxWidth, CvType.CV_8UC4)
+
+        val srcMat = Mat(4, 1, CvType.CV_32FC2)
+        val dstMat = Mat(4, 1, CvType.CV_32FC2)
+
+        srcMat.put(
+            0,
+            0,
+            tl.x * ratio,
+            tl.y * ratio,
+            tr.x * ratio,
+            tr.y * ratio,
+            br.x * ratio,
+            br.y * ratio,
+            bl.x * ratio,
+            bl.y * ratio
+        )
+        dstMat.put(0, 0, 0.0, 0.0, dw, 0.0, dw, dh, 0.0, dh)
+
+        val m = Imgproc.getPerspectiveTransform(srcMat, dstMat)
+
+        Imgproc.warpPerspective(src, doc, m, doc.size())
+
+        return doc
+    }
+
+    private var lastTransformDocument: Mat? = null
+    private var countSimilarDocument = 0
+
+    private fun isSameDocument(document: Mat): Boolean {
+        val copyDoc = Mat(document.size(), document.type())
+        if (lastTransformDocument != null) {
+            val lastDocumentWidth = lastTransformDocument?.width() ?: 0
+            val lastDocumentHeight = lastTransformDocument?.height() ?: 0
+            val widthMeasure = lastDocumentWidth / 10
+            val heightMeasure = lastDocumentHeight / 10
+
+            val newDocumentWidth = copyDoc.width()
+            val newDocumentHeight = copyDoc.height()
+
+            val widthDiff = abs(lastDocumentWidth - newDocumentWidth)
+            val heightDiff = abs(lastDocumentHeight - newDocumentHeight)
+            if (widthDiff <= widthMeasure && heightDiff <= heightMeasure) {
+                countSimilarDocument++
+            } else {
+                countSimilarDocument = 0
+            }
+        }
+        lastTransformDocument = Mat(copyDoc.size(), copyDoc.type())
+        copyDoc.copyTo(lastTransformDocument)
+        copyDoc.release()
+        return countSimilarDocument >= 10
     }
 }
 
