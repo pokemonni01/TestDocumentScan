@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -26,6 +27,7 @@ import org.opencv.imgproc.Imgproc
 import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList
+import kotlin.math.abs
 
 
 class KDocScannerFragment : BaseFragment() {
@@ -36,12 +38,55 @@ class KDocScannerFragment : BaseFragment() {
 
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
 
+    private var threshold1 = 75.0
+    private var threshold2 = 200.0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_kdoc_scanner, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        seekThreshold1.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+
+            var progressChangedValue = 0
+
+            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
+                progressChangedValue = progress
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+                threshold1 = progressChangedValue.toDouble()
+                tvThreshold1Value.text = threshold1.toString()
+            }
+
+        })
+        seekThreshold2.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+
+            var progressChangedValue = 0
+
+            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
+                progressChangedValue = progress
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+                threshold2 = progressChangedValue.toDouble()
+                tvThreshold2Value.text = threshold2.toString()
+            }
+
+        })
     }
 
     override fun onOpenCVConnected() {
@@ -104,17 +149,16 @@ class KDocScannerFragment : BaseFragment() {
 
                         val preview = Bitmap.createBitmap(resizedImage.cols(), resizedImage.rows(), Bitmap.Config.ARGB_8888)
                         resizedImage.toBitMap(preview)
-//                        Utils.matToBitmap(grayScale, preview)
                         if (quadrilateral != null) {
                             drawDocumentBox(quadrilateral.points, preview)
                         }
                         // END
                         (context as Activity).runOnUiThread {
-                            // FOR TEST
-//                            Imgproc.drawContours(resizedImage, contour, -1, Scalar(0.0, 255.0, 0.0), 2)
-//                            Utils.matToBitmap(resizedImage, preview)
-
-                            imageView.setImageBitmap(preview)
+                            ivPreView.setImageBitmap(original)
+                            val previewEdge = Bitmap.createBitmap(resizedImage.cols(), resizedImage.rows(), Bitmap.Config.ARGB_8888)
+                            edged.toBitMap(previewEdge)
+                            ivPreViewEdge.setImageBitmap(previewEdge)
+                            ivPreViewDetect.setImageBitmap(preview)
                         }
                         image.close()
                     }
@@ -125,9 +169,19 @@ class KDocScannerFragment : BaseFragment() {
     private fun edgeDetection(picture: Mat, grayScale: Mat, edged: Mat) {
         // convert the image to grayscale, blur it, and find edges
         // in the image
+//        findCannyEdge(picture, grayScale, edged)
+        findThreshold(picture, grayScale, edged)
+    }
+
+    private fun findCannyEdge(picture: Mat, grayScale: Mat, edged: Mat) {
         Imgproc.cvtColor(picture, grayScale, Imgproc.COLOR_RGBA2GRAY, 4)
         Imgproc.GaussianBlur(grayScale, grayScale, Size(5.0, 5.0), 0.0)
-        Imgproc.Canny(grayScale, edged, 75.0, 200.0)
+        Imgproc.Canny(grayScale, edged, threshold1, threshold2)
+    }
+
+    private fun findThreshold(picture: Mat, grayScale: Mat, edged: Mat) {
+        Imgproc.cvtColor(picture, grayScale, Imgproc.COLOR_RGBA2GRAY, 4)
+        Imgproc.threshold(grayScale, edged, threshold1, 255.0, Imgproc.THRESH_BINARY)
     }
 
     private fun findContour(edged: Mat): ArrayList<MatOfPoint> {
@@ -161,7 +215,7 @@ class KDocScannerFragment : BaseFragment() {
             // if our approximated contour has four points, then we
             // can assume that we have found our screen
             // select biggest 4 angles polygon
-            if (points.size == 4) {
+            if (points.size == 4 && abs(Imgproc.contourArea(approx)) > 1000) {
 
                 val foundPoints = sortPoints(points)
                 return Quadrilateral(c, foundPoints)
@@ -214,9 +268,9 @@ class KDocScannerFragment : BaseFragment() {
         val rightPos = width / 2 + baseMeasure
 
         return (rp[0].x <= leftPos && rp[0].y <= topPos
-                && rp[1].x >= rightPos && rp[1].y <= topPos
+                && rp[3].x >= rightPos && rp[3].y <= topPos
                 && rp[2].x >= rightPos && rp[2].y >= bottomPos
-                && rp[3].x <= leftPos && rp[3].y >= bottomPos)
+                && rp[1].x <= leftPos && rp[1].y >= bottomPos)
     }
 
     private fun drawDocumentBox(
