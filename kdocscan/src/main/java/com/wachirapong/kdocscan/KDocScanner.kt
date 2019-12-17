@@ -1,7 +1,7 @@
 package com.wachirapong.kdocscan
 
 import android.app.Activity
-import com.wachirapong.kdocscan.ui.scanner.KDocScannerActivity
+import com.wachirapong.kdocscan.ui.testscanner.KDocScannerActivity
 
 object KDocScanner {
 

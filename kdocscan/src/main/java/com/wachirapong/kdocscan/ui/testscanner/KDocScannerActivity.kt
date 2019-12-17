@@ -1,4 +1,4 @@
-package com.wachirapong.kdocscan.ui.scanner
+package com.wachirapong.kdocscan.ui.testscanner
 
 import android.content.Context
 import android.content.Intent
