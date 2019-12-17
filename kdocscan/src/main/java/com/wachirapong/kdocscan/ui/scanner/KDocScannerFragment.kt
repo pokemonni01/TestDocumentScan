@@ -16,7 +16,6 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.data.Quadrilateral
-import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.BaseFragment
 import com.wachirapong.kdocscan.util.ImageUtil
 import com.wachirapong.kdocscan.util.toBitMap
@@ -164,6 +163,7 @@ class KDocScannerFragment : BaseFragment() {
                                     fpt.cols(),
                                     fpt.rows(), Bitmap.Config.ARGB_8888)
                                 fpt.toBitMap(croppedBitmap)
+//                                saveMatToFile(fpt)
                             }
                         }
                         // END
@@ -384,5 +384,30 @@ class KDocScannerFragment : BaseFragment() {
         copyDoc.release()
         return countSimilarDocument >= 10
     }
+
+//    private fun saveMatToFile(documentImage: Mat) {
+//        context?.let {
+//            val docBitmap = Bitmap.createBitmap(documentImage.cols(),
+//                documentImage.rows(), Bitmap.Config.ARGB_8888)
+//            val fileName = "scanned_document"
+//            val destination = File(it.filesDir, fileName)
+//            val values = ContentValues()
+//            values.put(MediaStore.Images.Media.TITLE, fileName)
+//            values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+//            val uri = it.contentResolver.insert(MediaStore.Files.getContentUri("external"), values)
+//
+//            it.openFileOutput(fileName, Context.MODE_PRIVATE).use { fileOutputStream ->
+//                fileOutputStream.write(docBitmap.)
+//            }
+//            it.openFileInput()
+//        }
+//    }
+
+//    public fun getImageUri(ctx: Context , bitmap: Bitmap): Uri {
+//        val bytes = ByteArrayOutputStream()
+//        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+//        val path = MediaStore.Images.ImageColumns.IS_PENDING
+//        return Uri.parse(path)
+//    }
 }
 
