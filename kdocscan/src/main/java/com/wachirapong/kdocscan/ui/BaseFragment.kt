@@ -14,7 +14,7 @@ abstract class BaseFragment: Fragment() {
         loadOpenCV()
     }
 
-    protected fun loadOpenCV() {
+    private fun loadOpenCV() {
         if (!OpenCVLoader.initDebug()) {
             //OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, getActivity().getApplicationContext(), mLoaderCallback);
         } else {
@@ -22,9 +22,9 @@ abstract class BaseFragment: Fragment() {
         }
     }
 
-    protected abstract fun onOpenCVConnected()
-    protected abstract fun onOpenCVConnectionFailed()
-    protected abstract fun onAfterViewCreated()
+    protected open fun onOpenCVConnected() {}
+    protected open fun onOpenCVConnectionFailed() {}
+    protected open fun onAfterViewCreated() {}
 
     private val mLoaderCallback = object : BaseLoaderCallback(activity) {
         override fun onManagerConnected(status: Int) {

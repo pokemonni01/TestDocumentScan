@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.wachirapong.kdocscan.R
+import com.wachirapong.kdocscan.ui.scanner.ScannerFragment
 
 class KDocScannerActivity : AppCompatActivity() {
 
@@ -20,7 +21,7 @@ class KDocScannerActivity : AppCompatActivity() {
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.container,
-                KDocScannerFragment.initInstance()
+                ScannerFragment.initInstance()
             )
             .addToBackStack(null)
             .commit()
