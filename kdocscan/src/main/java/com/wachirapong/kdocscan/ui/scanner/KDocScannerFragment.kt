@@ -124,7 +124,7 @@ class KDocScannerFragment : BaseFragment() {
 
     private fun getImageAnalysis(context: Context): ImageAnalysis {
         return ImageAnalysis.Builder()
-            .setBackpressureStrategy(ImageAnalysis.BackpressureStrategy.BLOCK_PRODUCER)
+            .setBackpressureStrategy(ImageAnalysis.BackpressureStrategy.KEEP_ONLY_LATEST)
             .setTargetAspectRatio(AspectRatio.RATIO_16_9)
             .build().apply {
                 setAnalyzer(ContextCompat.getMainExecutor(context),
