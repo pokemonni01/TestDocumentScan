@@ -20,7 +20,7 @@ allprojects {
         google()
         jcenter()
         maven {
-            url  "http://dl.bintray.com/steveliles/maven"
+            url "http://dl.bintray.com/steveliles/maven"
         }
     }
 }
