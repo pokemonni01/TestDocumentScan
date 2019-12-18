@@ -6,12 +6,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraInfo
-import androidx.camera.core.CameraX
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
+import com.google.common.util.concurrent.ListenableFuture
 import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.ui.BaseFragment
 import kotlinx.android.synthetic.main.fragment_scanner.*
+import kotlinx.android.synthetic.main.fragment_scanner.previewView
 
 class ScannerFragment : BaseFragment(), ScannerContract.View {
 
@@ -20,6 +23,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
     }
 
     private val presenter = ScannerPresenter()
+    private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,7 +40,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
     }
 
     override fun onOpenCVConnected() {
-
+        startCamera()
     }
 
     override fun onOpenCVConnectionFailed() {
@@ -75,5 +79,21 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
         tvCancel?.setOnClickListener { activity?.onBackPressed() }
         tvAutoScan?.setOnClickListener { presenter.toggleAutoScan() }
         ivFlash?.setOnClickListener { presenter.toggleFlash() }
+    }
+
+    private fun startCamera() {
+        CameraX.getCameraInfo("")
+        context?.let {
+            cameraProviderFuture = ProcessCameraProvider.getInstance(it)
+            cameraProviderFuture.addListener(Runnable {
+                val cameraProvider = cameraProviderFuture.get()
+                val cameraSelector = CameraSelector.Builder()
+                    .requireLensFacing(LensFacing.BACK)
+                    .build()
+                val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9).build()
+                preview.previewSurfaceProvider = previewView.previewSurfaceProvider
+                cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
+            }, ContextCompat.getMainExecutor(it))
+        }
     }
 }
