@@ -82,7 +82,6 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
     }
 
     private fun startCamera() {
-        CameraX.getCameraInfo("")
         context?.let {
             cameraProviderFuture = ProcessCameraProvider.getInstance(it)
             cameraProviderFuture.addListener(Runnable {
