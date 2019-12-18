@@ -24,6 +24,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
 
     private val presenter = ScannerPresenter()
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
+    private var camera: Camera? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -61,10 +62,12 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
 
     override fun onFlashTurnOn() {
         ivFlash?.setImageResource(R.drawable.ic_flash_off)
+        camera?.cameraControl?.enableTorch(true)
     }
 
     override fun onFlashTurnOff() {
         ivFlash?.setImageResource(R.drawable.ic_flash_on)
+        camera?.cameraControl?.enableTorch(false)
     }
 
     private fun initView() {
@@ -91,8 +94,13 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
                     .build()
                 val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9).build()
                 preview.previewSurfaceProvider = previewView.previewSurfaceProvider
-                cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
+                camera = cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
             }, ContextCompat.getMainExecutor(it))
         }
     }
+
+//    private fun getImageCapture(): ImageCapture {
+//        val imageCapture = ImageCapture.Builder()
+//        return imageCapture
+//    }
 }
