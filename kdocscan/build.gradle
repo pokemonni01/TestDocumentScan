@@ -51,4 +51,9 @@ dependencies {
     // If you want to use the CameraX Lifecycle library
     implementation "androidx.camera:camera-lifecycle:1.0.0-alpha01"
     implementation 'com.quickbirdstudios:opencv:4.1.0'
+
+    // Koin library
+    def koin_version = "2.0.1"
+    implementation "org.koin:koin-core:$koin_version"
+    implementation "org.koin:koin-android:$koin_version"
 }

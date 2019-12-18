@@ -15,6 +15,7 @@ import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.ui.BaseFragment
 import kotlinx.android.synthetic.main.fragment_scanner.*
 import kotlinx.android.synthetic.main.fragment_scanner.previewView
+import org.koin.android.ext.android.inject
 
 class ScannerFragment : BaseFragment(), ScannerContract.View {
 
@@ -22,7 +23,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
         fun initInstance() = ScannerFragment()
     }
 
-    private val presenter = ScannerPresenter()
+    private val presenter: ScannerContract.Presenter by inject()
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private var camera: Camera? = null
 
@@ -94,7 +95,8 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
                     .build()
                 val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9).build()
                 preview.previewSurfaceProvider = previewView.previewSurfaceProvider
-                camera = cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
+                camera =
+                    cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
             }, ContextCompat.getMainExecutor(it))
         }
     }
