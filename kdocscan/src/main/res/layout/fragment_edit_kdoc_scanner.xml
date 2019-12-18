@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.testscanner.KDocScannerActivity">
+
+    <Button
+        android:id="@+id/btnNext"
+        android:text="Next"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btnBack"
+        android:text="Back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <com.wachirapong.kdocscan.ui.editscanner.QuadrilateralSelectionImageView
+        android:id="@+id/polygonView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <Button
+        android:id="@+id/button"
+        android:text="Scan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
