@@ -10,8 +10,8 @@ import kotlin.Comparator
 import kotlin.collections.ArrayList
 import kotlin.math.abs
 
-private const val THRESHOLD_1 = 20.0
-private const val THRESHOLD_2 = 50.0
+private const val THRESHOLD_1 = 0.0
+private const val THRESHOLD_2 = 30.0
 
 class ImageProcessor {
 
@@ -58,7 +58,7 @@ class ImageProcessor {
         }
     }
 
-    fun Quadrilateral.convertQuadrilateralToOriginalSize(): Quadrilateral {
+    private fun Quadrilateral.convertQuadrilateralToOriginalSize(): Quadrilateral {
         this.points?.forEach { point ->
             point.x *= ratio
             point.y *= ratio
@@ -83,6 +83,7 @@ class ImageProcessor {
                 color = Color.parseColor("#ff99cc00")
                 style = Paint.Style.STROKE
                 strokeWidth = 5f // TODO: should take from resources
+                isAntiAlias = true
             }
             val canvas = Canvas(image)
             canvas.drawPath(path, paint)
@@ -186,28 +187,31 @@ class ImageProcessor {
         return result
     }
 
-    private fun isSameDocument(document: Mat): Boolean {
-        val copyDoc = Mat(document.size(), document.type())
-        if (lastTransformDocument != null) {
-            val lastDocumentWidth = lastTransformDocument?.width() ?: 0
-            val lastDocumentHeight = lastTransformDocument?.height() ?: 0
-            val widthMeasure = lastDocumentWidth / 10
-            val heightMeasure = lastDocumentHeight / 10
+    private var lastDocumentArea = 0.0
 
-            val newDocumentWidth = copyDoc.width()
-            val newDocumentHeight = copyDoc.height()
-
-            val widthDiff = abs(lastDocumentWidth - newDocumentWidth)
-            val heightDiff = abs(lastDocumentHeight - newDocumentHeight)
-            if (widthDiff <= widthMeasure && heightDiff <= heightMeasure) {
-                countSimilarDocument++
-            } else {
-                countSimilarDocument = 0
-            }
+    fun isSameDocument(document: Quadrilateral?): Boolean {
+        val area = calculateArea(document?.points)
+        val areMeasure = lastDocumentArea / 10
+        val areaDiff = abs(lastDocumentArea - area)
+        lastDocumentArea = area
+        if (areMeasure > 0 && areaDiff <= areMeasure) {
+            countSimilarDocument++
+        } else {
+            countSimilarDocument = 0
         }
-        lastTransformDocument = Mat(copyDoc.size(), copyDoc.type())
-        copyDoc.copyTo(lastTransformDocument)
-        copyDoc.release()
         return countSimilarDocument >= 10
+    }
+
+    private fun calculateArea(points: List<Point>?): Double {
+        if (points?.size == 4) {
+            val tl = points[0]
+            val tr = points[3]
+            val br = points[2]
+            val bl = points[1]
+            return abs(
+                ((tl.x * tr.y - tl.y * tr.x) + (tr.x * br.y - tr.y * br.x) +
+                        (br.x * bl.y - br.y * bl.x) + (bl.x * tl.y - bl.y * tl.x)) / 2)
+        }
+        return 0.0
     }
 }
