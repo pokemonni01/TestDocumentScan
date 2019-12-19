@@ -1,7 +1,6 @@
 package com.wachirapong.kdocscan.util
 
 import android.graphics.*
-import androidx.core.content.ContextCompat
 import com.wachirapong.kdocscan.data.Quadrilateral
 import org.opencv.core.*
 import org.opencv.core.Point

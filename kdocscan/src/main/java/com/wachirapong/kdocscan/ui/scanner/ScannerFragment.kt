@@ -116,17 +116,13 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
         return ImageAnalysis.Builder()
             .setBackpressureStrategy(ImageAnalysis.BackpressureStrategy.KEEP_ONLY_LATEST)
             .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-//            .setTargetResolution(Size(1280, 720))
             .build().apply {
                 setAnalyzer(ContextCompat.getMainExecutor(context),
                     ImageAnalysis.Analyzer { image, rotationDegrees ->
                         val original = ImageUtil.imageToBitmap(image, rotationDegrees.toFloat())
                         val quadrilateral = imageProcessor.findDocument(original)
-                        // END
                         (context as Activity).runOnUiThread {
                             ivPreView?.setImageBitmap(imageProcessor.drawDocumentBox(original, quadrilateral))
-//                            rectView?.drawRect(
-//                                imageProcessor.convertToPreviewPoint(quadrilateral, ivPreView.width, ivPreView.height))
                         }
                         image.close()
                     }
