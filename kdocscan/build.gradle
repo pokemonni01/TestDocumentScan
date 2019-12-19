@@ -44,6 +44,7 @@ dependencies {
     api "androidx.camera:camera-core:${camerax_version}"
     // Add the CameraX Camera2 API interop support dependency
     api "androidx.camera:camera-camera2:${camerax_version}"
+    implementation "androidx.exifinterface:exifinterface:1.1.0"
     // If you want to use the CameraX View class
     implementation "androidx.camera:camera-view:1.0.0-alpha04"
     // If you want to use the CameraX Extensions library
