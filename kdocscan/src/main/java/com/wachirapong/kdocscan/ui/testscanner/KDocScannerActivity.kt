@@ -6,11 +6,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.widget.Toast
+import com.wachirapong.kdocscan.KDocScanner
 import com.wachirapong.kdocscan.R
+import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.reviewdocument.ReviewDocFragment
 import com.wachirapong.kdocscan.ui.scanner.ScannerFragment
 
-class KDocScannerActivity : AppCompatActivity() {
+class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener {
 
     companion object {
         fun getStartIntent(context: Context): Intent {
@@ -28,13 +30,23 @@ class KDocScannerActivity : AppCompatActivity() {
             .beginTransaction()
             .replace(R.id.container,
                 ScannerFragment.initInstance()
-                //ReviewDocFragment.initInstance(path.absolutePath)
             )
             .addToBackStack(null)
             .commit()
+
     }
 
     fun onReviewClickBack() {
         Toast.makeText(this,"back", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onDocumentDetected(scannedDocument: ScannedDocument) {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.container,
+                ReviewDocFragment.initInstance(scannedDocument.imageAbsolutePath)
+            )
+            .addToBackStack(null)
+            .commit()
     }
 }

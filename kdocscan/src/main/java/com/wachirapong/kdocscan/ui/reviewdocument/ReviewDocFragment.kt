@@ -64,7 +64,7 @@ class ReviewDocFragment : BaseFragment(), ReviewDocContract.View {
         }
 
         ivBack.setOnClickListener {
-            (context as KDocScannerActivity).onReviewClickBack()
+            (context as KDocScannerActivity).onBackPressed()
         }
 
         tvdone.setOnClickListener {

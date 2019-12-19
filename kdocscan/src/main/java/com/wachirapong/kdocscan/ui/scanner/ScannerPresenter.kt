@@ -27,4 +27,12 @@ class ScannerPresenter: ScannerContract.Presenter {
             view?.onFlashTurnOff()
         }
     }
+
+    override fun captureImage() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun saveBitmapToStorage() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 }
