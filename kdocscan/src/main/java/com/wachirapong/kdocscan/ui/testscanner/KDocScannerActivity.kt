@@ -1,16 +1,21 @@
 package com.wachirapong.kdocscan.ui.testscanner
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
-import android.widget.Toast
-import com.wachirapong.kdocscan.KDocScanner
+import androidx.appcompat.app.AppCompatActivity
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.reviewdocument.ReviewDocFragment
 import com.wachirapong.kdocscan.ui.scanner.ScannerFragment
+
 
 class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener {
 
@@ -23,16 +28,7 @@ class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_kdoc_scanner)
-
-        supportFragmentManager
-            .beginTransaction()
-            .replace(
-                R.id.container,
-                ScannerFragment.initInstance()
-            )
-            .addToBackStack(null)
-            .commit()
-
+        requestPermission()
     }
 
     override fun onDocumentDetected(scannedDocument: ScannedDocument) {
@@ -41,6 +37,52 @@ class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener
             .replace(
                 R.id.container,
                 ReviewDocFragment.initInstance(scannedDocument.imageAbsolutePath)
+            )
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun requestPermission() {
+        Dexter.withActivity(this)
+            .withPermission(Manifest.permission.CAMERA)
+            .withListener(object : PermissionListener {
+                override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                    startScanner()
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permission: PermissionRequest?,
+                    token: PermissionToken?
+                ) {
+                    token?.continuePermissionRequest()
+                }
+
+                override fun onPermissionDenied(response: PermissionDeniedResponse?) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+            }).check()
+    }
+
+    private fun startScanner() {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(
+                R.id.container,
+                ScannerFragment.initInstance()
+            )
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun startEditScan(scannedDocument: ScannedDocument) {
+
+    }
+
+    private fun startReviewDoc(documentImagePath: String) {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.container,
+                ReviewDocFragment.initInstance(documentImagePath)
             )
             .addToBackStack(null)
             .commit()
