@@ -24,11 +24,10 @@ class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_kdoc_scanner)
 
-        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS+"/testDoc.jpg")
-
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.container,
+            .replace(
+                R.id.container,
                 ScannerFragment.initInstance()
             )
             .addToBackStack(null)
@@ -36,14 +35,11 @@ class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener
 
     }
 
-    fun onReviewClickBack() {
-        Toast.makeText(this,"back", Toast.LENGTH_LONG).show()
-    }
-
     override fun onDocumentDetected(scannedDocument: ScannedDocument) {
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.container,
+            .replace(
+                R.id.container,
                 ReviewDocFragment.initInstance(scannedDocument.imageAbsolutePath)
             )
             .addToBackStack(null)

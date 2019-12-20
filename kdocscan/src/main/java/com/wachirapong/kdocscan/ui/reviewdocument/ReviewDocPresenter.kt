@@ -3,7 +3,6 @@ package com.wachirapong.kdocscan.ui.reviewdocument
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.os.Environment
 import org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY
 import org.opencv.android.Utils
 import org.opencv.core.Core
@@ -14,6 +13,7 @@ import java.io.FileOutputStream
 import java.lang.Exception
 import android.util.Log
 import androidx.exifinterface.media.ExifInterface
+import java.io.File
 
 
 class ReviewDocPresenter : ReviewDocContract.Presenter {
@@ -26,7 +26,7 @@ class ReviewDocPresenter : ReviewDocContract.Presenter {
     lateinit var grayMat: Mat
     var colorMode: Boolean = false
     var flipMode: Boolean = false
-
+    lateinit var saveFilePath: String
 
     override fun provideView(view: ReviewDocContract.View) {
         this.view = view
@@ -62,6 +62,7 @@ class ReviewDocPresenter : ReviewDocContract.Presenter {
     }
 
     override fun readImageFile(path: String) {
+        saveFilePath = File(path).parent
         oriImg = BitmapFactory.decodeFile(path)
         try {
             val exif = ExifInterface(path)
@@ -102,17 +103,15 @@ class ReviewDocPresenter : ReviewDocContract.Presenter {
     }
 
     private fun saveImageToFile(img: Bitmap) {
-        val file =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS + "/" + "testDoc2.jpg")
+        val file = File("$saveFilePath/Pic2.jpg")
         val outStream = FileOutputStream(file)
-        img.compress(Bitmap.CompressFormat.JPEG, 80, outStream)
+        img.compress(Bitmap.CompressFormat.JPEG, 70, outStream)
         outStream.flush()
         outStream.close()
     }
 
     private fun removeImage() {
-        val file =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS + "/" + "buff.jpg")
+        val file = File("$saveFilePath/Pic1.jpg")
         if (file.exists()) {
             file.delete()
         }

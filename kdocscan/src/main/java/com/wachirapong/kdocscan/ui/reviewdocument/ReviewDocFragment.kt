@@ -14,10 +14,12 @@ import com.wachirapong.kdocscan.ui.BaseFragment
 import com.wachirapong.kdocscan.ui.testscanner.KDocScannerActivity
 import com.wachirapong.kdocscan.ui.testscanner.KDocScannerFragment
 import kotlinx.android.synthetic.main.fragment_review_document.*
+import org.koin.android.ext.android.inject
+import java.io.File
 
 class ReviewDocFragment : BaseFragment(), ReviewDocContract.View {
 
-    var presenter = ReviewDocPresenter()
+    private val presenter: ReviewDocContract.Presenter by inject()
     lateinit var pathFile: String
 
     companion object {
