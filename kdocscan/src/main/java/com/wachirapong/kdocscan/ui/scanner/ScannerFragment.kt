@@ -156,23 +156,26 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
             .setCaptureMode(ImageCapture.CaptureMode.MAXIMIZE_QUALITY)
             .setTargetRotation(Surface.ROTATION_0)
             .build()
-        capture = {
-            val file = File(context.externalMediaDirs.first(), "pic1.jpg")
-            imageCapture.takePicture(file, ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(file: File) {
-                    val msg = "Photo capture succeeded: ${file.toURI()}"
-                    Log.d("CameraXApp", msg)
-                    onImageCaptured(file.absolutePath)
-                }
-
-                override fun onError(imageCaptureError: Int, message: String, cause: Throwable?) {
-                    val msg = "Photo capture failed: $message"
-                    Log.e("CameraXApp", msg)
-                    cause?.printStackTrace()
-                }
-            })
-        }
+        capture = { captureImage(context, imageCapture) }
+        ivCamera?.setOnClickListener { captureImage(context, imageCapture) }
         return imageCapture
+    }
+
+    private fun captureImage(context: Context, imageCapture: ImageCapture) {
+        val file = File(context.externalMediaDirs.first(), "pic1.jpg")
+        imageCapture.takePicture(file, ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(file: File) {
+                val msg = "Photo capture succeeded: ${file.toURI()}"
+                Log.d("CameraXApp", msg)
+                onImageCaptured(file.absolutePath)
+            }
+
+            override fun onError(imageCaptureError: Int, message: String, cause: Throwable?) {
+                val msg = "Photo capture failed: $message"
+                Log.e("CameraXApp", msg)
+                cause?.printStackTrace()
+            }
+        })
     }
 
     private fun onImageCaptured(absolutePath: String) {
