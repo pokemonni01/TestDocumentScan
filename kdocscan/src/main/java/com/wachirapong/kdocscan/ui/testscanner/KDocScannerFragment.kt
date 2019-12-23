@@ -104,7 +104,7 @@ class KDocScannerFragment : BaseFragment() {
 
     }
 
-    private fun startCamera() {
+    fun startCamera() {
         context?.let {
             cameraProviderFuture = ProcessCameraProvider.getInstance(it)
             cameraProviderFuture.addListener(Runnable {
