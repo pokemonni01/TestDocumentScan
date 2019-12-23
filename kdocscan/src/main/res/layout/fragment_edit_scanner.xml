@@ -15,20 +15,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/ivFlash"
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/btnBack"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:src="@drawable/ic_flash_on"
+            android:text="@string/back"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/sp_18"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tvAutoScan"
+            android:id="@+id/btnNext"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:text="@string/auto_scan"
+            android:text="@string/next"
             android:textColor="@android:color/white"
             android:textSize="@dimen/sp_18"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -36,12 +38,6 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!--<com.wachirapong.kdocscan.ui.editscanner.QuadrilateralSelectionImageView
-        android:id="@+id/polygonView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
--->
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
         android:layout_width="0dp"
@@ -52,10 +48,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:layout_width="0dp"
+
+    <com.wachirapong.kdocscan.ui.editscanner.QuadrilateralSelectionImageView
+        android:id="@+id/polygonView"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:visibility="invisible"
+        android:layout_weight="1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
