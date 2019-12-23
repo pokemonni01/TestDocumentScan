@@ -7,11 +7,18 @@ import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.LensFacing
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.ui.BaseFragment
 import com.wachirapong.kdocscan.ui.testscanner.KDocScannerFragment
+import kotlinx.android.synthetic.main.fragment_kdoc_scanner.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -36,7 +43,21 @@ class EditScannerFragment : BaseFragment(), EditScannerContract.View {
     }
 
     override fun onOpenCVConnected() {
-        //KDocScannerFragment().startCamera()
+        startCamera()
+    }
+
+    private fun startCamera() {
+        context?.let {
+            cameraProviderFuture = ProcessCameraProvider.getInstance(it)
+            cameraProviderFuture.addListener(Runnable {
+                val cameraProvider = cameraProviderFuture.get()
+                val cameraSelector = CameraSelector.Builder()
+                    .requireLensFacing(LensFacing.BACK).build()
+                val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9).build()
+                preview.previewSurfaceProvider = previewView.previewSurfaceProvider
+                cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
+            }, ContextCompat.getMainExecutor(it))
+        }
     }
 
     override fun onOpenCVConnectionFailed() { }

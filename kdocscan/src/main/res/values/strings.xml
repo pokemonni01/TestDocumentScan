@@ -4,6 +4,11 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="auto_scan">Auto</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
     <string name="manual_scan">Manual</string>
     <string name="cancel">Cancel</string>
+
+    <!-- scale padding -->
+    <dimen name="scanPadding">16dp</dimen>
 </resources>

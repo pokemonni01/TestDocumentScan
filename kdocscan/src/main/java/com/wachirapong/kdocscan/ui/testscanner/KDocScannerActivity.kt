@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.wachirapong.kdocscan.R
+import com.wachirapong.kdocscan.ui.editscanner.EditScannerFragment
 import com.wachirapong.kdocscan.ui.editscanner.QuadrilateralSelectionImageView
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -51,14 +52,17 @@ class KDocScannerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setContentView(R.layout.activity_kdoc_scanner)
-        setContentView(R.layout.fragment_edit_kdoc_scanner)
+        setContentView(R.layout.activity_kdoc_scanner)
+
+        //setContentView(R.layout.fragment_edit_kdoc_scanner)
         editScanDocument()
 
-        /*supportFragmentManager
+        /*
+        supportFragmentManager
             .beginTransaction()
             .replace(R.id.container,
-                ScannerFragment.initInstance()
+                EditScannerFragment.initInstance()
+                //ScannerFragment.initInstance()
             )
             .addToBackStack(null)
             .commit()*/
@@ -66,7 +70,6 @@ class KDocScannerActivity : AppCompatActivity() {
 
     fun editScanDocument(){
         mSelectionImageView = (mSelectionImageView)?.findViewById(R.id.polygonView)
-        mButton = findViewById(R.id.button)
 
         btnNext?.setOnClickListener {
             //open new activity
