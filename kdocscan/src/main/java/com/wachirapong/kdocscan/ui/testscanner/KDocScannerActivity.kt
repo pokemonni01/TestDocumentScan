@@ -1,5 +1,6 @@
 package com.wachirapong.kdocscan.ui.testscanner
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,9 +9,17 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import com.wachirapong.kdocscan.R
-import com.wachirapong.kdocscan.ui.editscanner.EditScannerFragment
+import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.editscanner.QuadrilateralSelectionImageView
+import com.wachirapong.kdocscan.ui.reviewdocument.ReviewDocFragment
+import com.wachirapong.kdocscan.ui.scanner.ScannerFragment
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -20,7 +29,8 @@ import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class KDocScannerActivity : AppCompatActivity() {
+
+class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener {
 
     //call view 4 points
     private var mSelectionImageView: QuadrilateralSelectionImageView? = null
@@ -53,19 +63,50 @@ class KDocScannerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_kdoc_scanner)
+//        requestPermission()
+    }
 
-        //setContentView(R.layout.fragment_edit_kdoc_scanner)
-        editScanDocument()
-
-        /*
+    override fun onDocumentDetected(scannedDocument: ScannedDocument) {
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.container,
-                EditScannerFragment.initInstance()
-                //ScannerFragment.initInstance()
+            .replace(
+                R.id.container,
+                ReviewDocFragment.initInstance(scannedDocument.imageAbsolutePath)
             )
             .addToBackStack(null)
-            .commit()*/
+            .commit()
+    }
+
+    private fun requestPermission() {
+        Dexter.withActivity(this)
+            .withPermission(Manifest.permission.CAMERA)
+            .withListener(object : PermissionListener {
+                override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                    startScanner()
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permission: PermissionRequest?,
+                    token: PermissionToken?
+                ) {
+                    token?.continuePermissionRequest()
+                }
+
+                override fun onPermissionDenied(response: PermissionDeniedResponse?) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+            }).check()
+    }
+
+    private fun startScanner() {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(
+                R.id.container,
+                ScannerFragment.initInstance()
+            )
+            .addToBackStack(null)
+            .commit()
     }
 
     fun editScanDocument(){
@@ -337,5 +378,19 @@ class KDocScannerActivity : AppCompatActivity() {
         val bm = Bitmap.createBitmap(src.width(), src.height(), Bitmap.Config.ARGB_8888)
         Utils.matToBitmap(src, bm)
         return bm
+    }
+
+    private fun startEditScan(scannedDocument: ScannedDocument) {
+
+    }
+
+    private fun startReviewDoc(documentImagePath: String) {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.container,
+                ReviewDocFragment.initInstance(documentImagePath)
+            )
+            .addToBackStack(null)
+            .commit()
     }
 }

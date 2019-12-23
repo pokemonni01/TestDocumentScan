@@ -128,7 +128,7 @@ class KDocScannerFragment : BaseFragment() {
             .build().apply {
                 setAnalyzer(ContextCompat.getMainExecutor(context),
                     ImageAnalysis.Analyzer { image, rotationDegrees ->
-                        val original = ImageUtil.imageToBitmap(image.image!!, rotationDegrees.toFloat())
+                        val original = ImageUtil.imageToBitmap(image, rotationDegrees.toFloat())
                         val originalMat = Mat(Size(original.width.toDouble(), original.height.toDouble()), CvType.CV_8UC4)
                         original.toMat(originalMat)
 

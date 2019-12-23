@@ -11,4 +11,5 @@
 
     <!-- scale padding -->
     <dimen name="scanPadding">16dp</dimen>
+    <string name="done">DONE</string>
 </resources>

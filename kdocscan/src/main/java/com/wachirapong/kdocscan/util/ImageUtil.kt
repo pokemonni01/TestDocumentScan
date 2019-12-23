@@ -2,11 +2,12 @@ package com.wachirapong.kdocscan.util
 
 import android.graphics.*
 import android.media.Image
+import androidx.camera.core.ImageProxy
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 object ImageUtil {
-    fun imageToBitmap(image: Image, rotationDegrees: Float): Bitmap {
+    fun imageToBitmap(image: ImageProxy, rotationDegrees: Float): Bitmap {
 
         assert(image.format == ImageFormat.NV21)
 
