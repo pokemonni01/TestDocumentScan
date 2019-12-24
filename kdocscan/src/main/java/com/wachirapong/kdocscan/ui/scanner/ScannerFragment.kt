@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import com.wachirapong.kdocscan.R
+import com.wachirapong.kdocscan.data.DocumentPoint
 import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.BaseFragment
 import com.wachirapong.kdocscan.util.ImageProcessor
@@ -36,6 +37,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
     private var camera: Camera? = null
     private var listener: ScannerListener? = null
     private var capture: (() -> Unit)? = null
+    private val listDoucumentPoint = mutableListOf<DocumentPoint>()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -139,6 +141,9 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
                         val quadrilateral = imageProcessor.findDocument(original)
                         val isSameDocument = imageProcessor.isSameDocument(quadrilateral)
                         if (isSameDocument) {
+                            quadrilateral?.points?.forEach { it ->
+                                listDoucumentPoint.add(DocumentPoint(it.x, it.y))
+                            }
                             capture?.invoke()
                         }
                         (context as Activity).runOnUiThread {
@@ -179,7 +184,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
     }
 
     private fun onImageCaptured(absolutePath: String) {
-        listener?.onDocumentDetected((ScannedDocument(absolutePath, listOf())))
+        listener?.onDocumentDetected((ScannedDocument(absolutePath, listDoucumentPoint)))
     }
 
     interface ScannerListener {

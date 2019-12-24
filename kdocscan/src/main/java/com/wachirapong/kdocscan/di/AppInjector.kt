@@ -2,6 +2,8 @@ package com.wachirapong.kdocscan.di
 
 import com.wachirapong.kdocscan.manager.FileManager
 import com.wachirapong.kdocscan.manager.FileManagerImpl
+import com.wachirapong.kdocscan.ui.editscanner.EditScannerContract
+import com.wachirapong.kdocscan.ui.editscanner.EditScannerPresenter
 import com.wachirapong.kdocscan.ui.reviewdocument.ReviewDocContract
 import com.wachirapong.kdocscan.ui.reviewdocument.ReviewDocPresenter
 import com.wachirapong.kdocscan.ui.scanner.ScannerContract
@@ -17,6 +19,7 @@ private val managerModule = module {
 private val documentScanModule = module {
     factory { ImageProcessor() }
     factory<ScannerContract.Presenter> { ScannerPresenter() }
+    factory<EditScannerContract.Presenter> { EditScannerPresenter(get(), get()) }
     factory<ReviewDocContract.Presenter> { ReviewDocPresenter() }
 }
 

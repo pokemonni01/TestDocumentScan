@@ -1,28 +1,65 @@
 package com.wachirapong.kdocscan.ui.editscanner
 
-class EditScannerPresenter: EditScannerContract.Presenter {
+import android.graphics.Bitmap
+import android.graphics.PointF
+import com.wachirapong.kdocscan.data.DocumentPoint
+import com.wachirapong.kdocscan.data.ScannedDocument
+import com.wachirapong.kdocscan.manager.FileManager
+import com.wachirapong.kdocscan.util.ImageProcessor
+import org.opencv.core.Point
+
+class EditScannerPresenter(
+    private val fileManager: FileManager,
+    private val imageProcessor: ImageProcessor
+) : EditScannerContract.Presenter {
 
     private var view: EditScannerContract.View? = null
+    private var scannedDocument: ScannedDocument? = null
+    private var ratio = 1f
+
+    var image: Bitmap? = null
 
     override fun provideView(view: EditScannerContract.View) {
         this.view = view
     }
 
-    override fun toggleBackButton() {
-        //start camera preview
-        //KDocScannerFragment().startCamera()
+    override fun showScannedDocument(scannedDocument: ScannedDocument?) {
+        this.scannedDocument = scannedDocument
+        fileManager.loadBitmapFromStorage(
+            absolutePath = scannedDocument?.imageAbsolutePath ?: "",
+            onSuccess = {
+                image = it
+                view?.showImage(it)
+            },
+            onFail = {
+                // TODO On Fail
+            }
+        )
     }
 
-    override fun previewQuadrilateralSelection() {
-        //call QuadrilateralSelectionImageView
+    override fun getDocumentPoint(viewWidth: Int, viewHeight: Int) {
+        image?.let {image ->
+            imageProcessor.findDocument(image)?.let {
+                val quadrilateral = imageProcessor.convertQuadrilateralToOriginalSize(it)
+                ratio = viewWidth / image.width.toFloat()
+                view?.showDocumentPoints(
+                    hashMapOf(
+                        0 to quadrilateral.points?.get(0).toPointF(ratio),
+                        1 to quadrilateral.points?.get(1).toPointF(ratio),
+                        2 to quadrilateral.points?.get(2).toPointF(ratio),
+                        3 to quadrilateral.points?.get(3).toPointF(ratio)
+//                        3 to scannedDocument?.listDocumentPoint?.get(3).toPointF(ratio)
+                    )
+                )
+            }
+        }
     }
 
-    override fun toggleNextButton() {
-        //save image to pic2
+    private fun DocumentPoint?.toPointF(ratio: Float = 1f): PointF {
+        return PointF((this?.x?.toFloat() ?: 0f) * ratio, (this?.y?.toFloat() ?: 0f) * ratio)
     }
 
-    override fun saveImage() {
-        //save image
+    private fun Point?.toPointF(ratio: Float = 1f): PointF {
+        return PointF((this?.x?.toFloat() ?: 0f) * ratio, (this?.y?.toFloat() ?: 0f) * ratio)
     }
-
 }

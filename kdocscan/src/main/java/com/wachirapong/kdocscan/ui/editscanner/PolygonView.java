@@ -1,12 +1,3 @@
-/*
- * *
- *  * Created by Muhammet Ali YÜCE on 3/5/19 4:26 PM
- *  * on Github: /mayuce
- *  * Copyright (c) 2019 . All rights reserved.
- *  * Last modified 3/5/19 4:11 PM
- *
- */
-
 package com.wachirapong.kdocscan.ui.editscanner;
 
 import android.content.Context;
@@ -29,9 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by jhansi on 28/03/15.
- */
 public class PolygonView extends FrameLayout {
 
     protected Context context;
@@ -162,11 +150,11 @@ public class PolygonView extends FrameLayout {
         pointer2.setX(pointFMap.get(1).x);
         pointer2.setY(pointFMap.get(1).y);
 
-        pointer3.setX(pointFMap.get(2).x);
-        pointer3.setY(pointFMap.get(2).y);
+        pointer3.setX(pointFMap.get(3).x);
+        pointer3.setY(pointFMap.get(3).y);
 
-        pointer4.setX(pointFMap.get(3).x);
-        pointer4.setY(pointFMap.get(3).y);
+        pointer4.setX(pointFMap.get(2).x);
+        pointer4.setY(pointFMap.get(2).y);
     }
 
     @Override
@@ -204,14 +192,14 @@ public class PolygonView extends FrameLayout {
         ImageView imageView = new ImageView(context);
         LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         imageView.setLayoutParams(layoutParams);
-        //imageView.setImageResource(R.drawable.circle);
+        imageView.setImageResource(R.drawable.circle);
         imageView.setX(x);
         imageView.setY(y);
         imageView.setOnTouchListener(new TouchListenerImpl());
         return imageView;
     }
 
-    private class MidPointTouchListenerImpl implements OnTouchListener {
+    private class MidPointTouchListenerImpl implements View.OnTouchListener {
 
         PointF DownPT = new PointF(); // Record Mouse Position When Pressed Down
         PointF StartPT = new PointF(); // Record Start Position of 'img'

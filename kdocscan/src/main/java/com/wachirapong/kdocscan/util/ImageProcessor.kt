@@ -15,7 +15,7 @@ private const val THRESHOLD_2 = 30.0
 
 class ImageProcessor {
 
-    private var ratio = 0.0
+    var ratio = 0.0
     private var size: Size? = null
     private var lastTransformDocument: Mat? = null
     private var countSimilarDocument = 0
@@ -58,12 +58,12 @@ class ImageProcessor {
         }
     }
 
-    private fun Quadrilateral.convertQuadrilateralToOriginalSize(): Quadrilateral {
-        this.points?.forEach { point ->
+    fun convertQuadrilateralToOriginalSize(quadrilateral: Quadrilateral): Quadrilateral {
+        quadrilateral.points?.forEach { point ->
             point.x *= ratio
             point.y *= ratio
         }
-        return this
+        return quadrilateral
     }
 
     fun drawDocumentBox(
@@ -71,7 +71,7 @@ class ImageProcessor {
         quadrilateral: Quadrilateral?
     ): Bitmap {
         quadrilateral?.points?.let { points ->
-            quadrilateral.convertQuadrilateralToOriginalSize()
+            convertQuadrilateralToOriginalSize(quadrilateral)
             val path = Path().apply {
                 moveTo(points[0].x.toFloat() , points[0].y.toFloat())
                 lineTo(points[1].x.toFloat(), points[1].y.toFloat())

@@ -4,4 +4,6 @@
     <dimen name="sp_36">36sp</dimen>
     <dimen name="dp_16">16dp</dimen>
     <dimen name="sp_18">18sp</dimen>
+    <dimen name="polygonViewCircleWidth">32dp</dimen>
+    <dimen name="polygonViewStrokeWidth">2dp</dimen>
 </resources>

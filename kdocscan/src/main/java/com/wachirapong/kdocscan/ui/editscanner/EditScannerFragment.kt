@@ -2,77 +2,74 @@ package com.wachirapong.kdocscan.ui.editscanner
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.PointF
 import android.os.Bundle
 import android.util.Base64
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.camera.core.AspectRatio
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.LensFacing
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.LifecycleOwner
-import com.google.common.util.concurrent.ListenableFuture
+import android.widget.FrameLayout
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.os.bundleOf
 import com.wachirapong.kdocscan.R
+import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.BaseFragment
-import com.wachirapong.kdocscan.ui.testscanner.KDocScannerFragment
-import kotlinx.android.synthetic.main.fragment_kdoc_scanner.*
+import kotlinx.android.synthetic.main.fragment_edit_scanner.*
+import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 
+
+private const val BUNDLE_SCANNED_DOCUMENT = "BUNDLE_SCANNED_DOCUMENT"
+
 class EditScannerFragment : BaseFragment(), EditScannerContract.View {
 
     companion object {
-        fun initInstance() = EditScannerFragment()
+        fun initInstance(scannedDocument: ScannedDocument) = EditScannerFragment().apply {
+            arguments = bundleOf(BUNDLE_SCANNED_DOCUMENT to scannedDocument)
+        }
     }
 
-    private val presenter = EditScannerPresenter()
-    private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
+    private val presenter: EditScannerContract.Presenter by inject()
+    private var bitmap: Bitmap? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_scanner, container, false)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_edit_scanner, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         presenter.provideView(this)
+        arguments?.let {
+            presenter.showScannedDocument(it.getParcelable(BUNDLE_SCANNED_DOCUMENT))
+        }
         initView()
     }
 
-    override fun onOpenCVConnected() {
-        startCamera()
-    }
-
-    private fun startCamera() {
-        context?.let {
-            cameraProviderFuture = ProcessCameraProvider.getInstance(it)
-            cameraProviderFuture.addListener(Runnable {
-                val cameraProvider = cameraProviderFuture.get()
-                val cameraSelector = CameraSelector.Builder()
-                    .requireLensFacing(LensFacing.BACK).build()
-                val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9).build()
-                preview.previewSurfaceProvider = previewView.previewSurfaceProvider
-                cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
-            }, ContextCompat.getMainExecutor(it))
+    override fun showImage(image: Bitmap) {
+        imageView.post {
+            imageView.setImageBitmap(image)
+            presenter.getDocumentPoint(imageView.width, imageView.height)
         }
     }
 
-    override fun onOpenCVConnectionFailed() { }
-
-    override fun onAfterViewCreated() { }
+    override fun showDocumentPoints(pointFMap: Map<Int, PointF>) {
+        polygonView?.points = pointFMap
+    }
 
     private fun initView() {
+        btnNext?.setOnClickListener {
 
+        }
     }
 
-    override fun showImage(pathName: String) {
-        imagePathBitmap(pathName)
-    }
-
-    private fun imagePathBitmap(pathName: String) : String {
+    private fun imagePathBitmap(pathName: String): String {
         val file = File(pathName)
         val fileInputStream = FileInputStream(file)
         val bitmap = BitmapFactory.decodeStream(fileInputStream)
