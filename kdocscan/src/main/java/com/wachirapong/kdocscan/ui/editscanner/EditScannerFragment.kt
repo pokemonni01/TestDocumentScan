@@ -1,5 +1,6 @@
 package com.wachirapong.kdocscan.ui.editscanner
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.PointF
@@ -15,6 +16,7 @@ import androidx.core.os.bundleOf
 import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.BaseFragment
+import com.wachirapong.kdocscan.ui.scanner.ScannerFragment
 import kotlinx.android.synthetic.main.fragment_edit_scanner.*
 import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
@@ -34,6 +36,14 @@ class EditScannerFragment : BaseFragment(), EditScannerContract.View {
 
     private val presenter: EditScannerContract.Presenter by inject()
     private var bitmap: Bitmap? = null
+    private var listener: EditScannerListener? = null
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is EditScannerListener) {
+            listener = context
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,9 +73,13 @@ class EditScannerFragment : BaseFragment(), EditScannerContract.View {
         polygonView?.points = pointFMap
     }
 
+    override fun openReviewDoc(file: File) {
+        listener?.onCropImageSuccess(file)
+    }
+
     private fun initView() {
         btnNext?.setOnClickListener {
-
+            presenter.cropImage(polygonView.pointsWithOutOrder)
         }
     }
 
@@ -77,5 +91,9 @@ class EditScannerFragment : BaseFragment(), EditScannerContract.View {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
         val byteArrayImg = byteArrayOutputStream.toByteArray()
         return Base64.encodeToString(byteArrayImg, Base64.DEFAULT)
+    }
+
+    interface EditScannerListener {
+        fun onCropImageSuccess(file: File)
     }
 }

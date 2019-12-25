@@ -16,9 +16,10 @@ import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.editscanner.EditScannerFragment
 import com.wachirapong.kdocscan.ui.reviewdocument.ReviewDocFragment
 import com.wachirapong.kdocscan.ui.scanner.ScannerFragment
+import java.io.File
 
 
-class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener {
+class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener, EditScannerFragment.EditScannerListener {
 
     companion object {
 
@@ -35,6 +36,10 @@ class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener
 
     override fun onDocumentDetected(scannedDocument: ScannedDocument) {
         startEditScan(scannedDocument)
+    }
+
+    override fun onCropImageSuccess(file: File) {
+        startReviewDoc(file.absolutePath)
     }
 
     private fun requestPermission() {

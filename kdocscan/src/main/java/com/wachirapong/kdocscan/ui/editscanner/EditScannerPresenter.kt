@@ -41,18 +41,29 @@ class EditScannerPresenter(
         image?.let {image ->
             imageProcessor.findDocument(image)?.let {
                 val quadrilateral = imageProcessor.convertQuadrilateralToOriginalSize(it)
-                ratio = viewWidth / image.width.toFloat()
+                ratio = image.width.toFloat() / viewWidth
                 view?.showDocumentPoints(
                     hashMapOf(
                         0 to quadrilateral.points?.get(0).toPointF(ratio),
                         1 to quadrilateral.points?.get(1).toPointF(ratio),
                         2 to quadrilateral.points?.get(2).toPointF(ratio),
                         3 to quadrilateral.points?.get(3).toPointF(ratio)
-//                        3 to scannedDocument?.listDocumentPoint?.get(3).toPointF(ratio)
                     )
                 )
             }
         }
+    }
+
+    override fun cropImage(pointList: List<PointF>) {
+        image?.let {
+            fileManager.saveBitmapToStorage(
+                bitmap = imageProcessor.fourPointTransform(it, pointList, ratio.toDouble()),
+                fileName = "pic2.jpg",
+                onSuccess = { file -> view?.openReviewDoc(file) },
+                onFail = { }
+                )
+        }
+
     }
 
     private fun DocumentPoint?.toPointF(ratio: Float = 1f): PointF {
@@ -60,6 +71,6 @@ class EditScannerPresenter(
     }
 
     private fun Point?.toPointF(ratio: Float = 1f): PointF {
-        return PointF((this?.x?.toFloat() ?: 0f) * ratio, (this?.y?.toFloat() ?: 0f) * ratio)
+        return PointF((this?.x?.toFloat() ?: 0f) / ratio, (this?.y?.toFloat() ?: 0f) / ratio)
     }
 }

@@ -106,6 +106,18 @@ public class PolygonView extends FrameLayout {
         return getOrderedPoints(points);
     }
 
+    public List<PointF> getPointsWithOutOrder() {
+        int padding = (int) getResources().getDimension(R.dimen.scanPadding);
+
+        List<PointF> points = new ArrayList<PointF>();
+        points.add(new PointF(pointer1.getX() + padding, pointer1.getY() + padding));
+        points.add(new PointF(pointer2.getX() + padding, pointer2.getY() + padding));
+        points.add(new PointF(pointer3.getX() + padding, pointer3.getY() + padding));
+        points.add(new PointF(pointer4.getX() + padding, pointer4.getY() + padding));
+
+        return points;
+    }
+
     public Map<Integer, PointF> getOrderedPoints(List<PointF> points) {
 
         PointF centerPoint = new PointF();

@@ -9,6 +9,9 @@ import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 private const val THRESHOLD_1 = 0.0
 private const val THRESHOLD_2 = 30.0
@@ -213,5 +216,53 @@ class ImageProcessor {
                         (br.x * bl.y - br.y * bl.x) + (bl.x * tl.y - bl.y * tl.x)) / 2)
         }
         return 0.0
+    }
+
+    fun fourPointTransform(image: Bitmap, pts: List<PointF>, ratio: Double): Bitmap {
+        val src = Mat(Size(image.width.toDouble(), image.height.toDouble()), CvType.CV_8UC4)
+        image.toMat(src)
+        val tl = Point(pts[0].x.toDouble(), pts[0].y.toDouble())
+        val tr = Point(pts[2].x.toDouble(), pts[2].y.toDouble())
+        val br = Point(pts[3].x.toDouble(), pts[3].y.toDouble())
+        val bl = Point(pts[1].x.toDouble(), pts[1].y.toDouble())
+
+        val widthA = sqrt((br.x - bl.x).pow(2.0) + (br.y - bl.y).pow(2.0))
+        val widthB = sqrt((tr.x - tl.x).pow(2.0) + (tr.y - tl.y).pow(2.0))
+
+        val dw = max(widthA, widthB) * ratio
+        val maxWidth = dw.toInt()
+
+
+        val heightA = sqrt((tr.x - br.x).pow(2.0) + (tr.y - br.y).pow(2.0))
+        val heightB = sqrt((tl.x - bl.x).pow(2.0) + (tl.y - bl.y).pow(2.0))
+
+        val dh = max(heightA, heightB) * ratio
+        val maxHeight = dh.toInt()
+
+        val doc = Mat(maxHeight, maxWidth, CvType.CV_8UC4)
+
+        val srcMat = Mat(4, 1, CvType.CV_32FC2)
+        val dstMat = Mat(4, 1, CvType.CV_32FC2)
+
+        srcMat.put(
+            0,
+            0,
+            tl.x * ratio,
+            tl.y * ratio,
+            tr.x * ratio,
+            tr.y * ratio,
+            br.x * ratio,
+            br.y * ratio,
+            bl.x * ratio,
+            bl.y * ratio
+        )
+        dstMat.put(0, 0, 0.0, 0.0, dw, 0.0, dw, dh, 0.0, dh)
+
+        val m = Imgproc.getPerspectiveTransform(srcMat, dstMat)
+
+        Imgproc.warpPerspective(src, doc, m, doc.size())
+        val result = Bitmap.createBitmap(doc.cols(), doc.rows(), Bitmap.Config.ARGB_8888)
+        doc.toBitMap(result)
+        return result
     }
 }
