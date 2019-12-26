@@ -19,7 +19,8 @@ import com.wachirapong.kdocscan.ui.scanner.ScannerFragment
 import java.io.File
 
 
-class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener, EditScannerFragment.EditScannerListener {
+class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener,
+    EditScannerFragment.EditScannerListener {
 
     companion object {
 
@@ -88,7 +89,8 @@ class KDocScannerActivity : AppCompatActivity(), ScannerFragment.ScannerListener
     private fun startReviewDoc(documentImagePath: String) {
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.container,
+            .replace(
+                R.id.container,
                 ReviewDocFragment.initInstance(documentImagePath)
             )
             .addToBackStack(null)

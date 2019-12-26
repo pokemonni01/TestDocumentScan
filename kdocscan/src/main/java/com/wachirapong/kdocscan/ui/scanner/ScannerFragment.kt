@@ -147,7 +147,12 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
                             capture?.invoke()
                         }
                         (context as Activity).runOnUiThread {
-                            ivPreView?.setImageBitmap(imageProcessor.drawDocumentBox(original, quadrilateral))
+                            ivPreView?.setImageBitmap(
+                                imageProcessor.drawDocumentBox(
+                                    original,
+                                    quadrilateral
+                                )
+                            )
                         }
                         image.close()
                     }
@@ -168,19 +173,22 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
 
     private fun captureImage(context: Context, imageCapture: ImageCapture) {
         val file = File(context.externalMediaDirs.first(), "pic1.jpg")
-        imageCapture.takePicture(file, ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageSavedCallback {
-            override fun onImageSaved(file: File) {
-                val msg = "Photo capture succeeded: ${file.toURI()}"
-                Log.d("CameraXApp", msg)
-                onImageCaptured(file.absolutePath)
-            }
+        imageCapture.takePicture(
+            file,
+            ContextCompat.getMainExecutor(context),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(file: File) {
+                    val msg = "Photo capture succeeded: ${file.toURI()}"
+                    Log.d("CameraXApp", msg)
+                    onImageCaptured(file.absolutePath)
+                }
 
-            override fun onError(imageCaptureError: Int, message: String, cause: Throwable?) {
-                val msg = "Photo capture failed: $message"
-                Log.e("CameraXApp", msg)
-                cause?.printStackTrace()
-            }
-        })
+                override fun onError(imageCaptureError: Int, message: String, cause: Throwable?) {
+                    val msg = "Photo capture failed: $message"
+                    Log.e("CameraXApp", msg)
+                    cause?.printStackTrace()
+                }
+            })
     }
 
     private fun onImageCaptured(absolutePath: String) {

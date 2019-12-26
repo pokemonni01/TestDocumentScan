@@ -38,7 +38,7 @@ class EditScannerPresenter(
     }
 
     override fun getDocumentPoint(viewWidth: Int, viewHeight: Int) {
-        image?.let {image ->
+        image?.let { image ->
             imageProcessor.findDocument(image)?.let {
                 val quadrilateral = imageProcessor.convertQuadrilateralToOriginalSize(it)
                 ratio = image.width.toFloat() / viewWidth
@@ -59,11 +59,11 @@ class EditScannerPresenter(
             fileManager.saveBitmapToStorage(
                 bitmap = imageProcessor.fourPointTransform(it, pointList, ratio.toDouble()),
                 fileName = "pic2.jpg",
+                quality = 100,
                 onSuccess = { file -> view?.openReviewDoc(file) },
                 onFail = { }
-                )
+            )
         }
-
     }
 
     private fun DocumentPoint?.toPointF(ratio: Float = 1f): PointF {

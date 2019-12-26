@@ -20,7 +20,7 @@ private val documentScanModule = module {
     factory { ImageProcessor() }
     factory<ScannerContract.Presenter> { ScannerPresenter() }
     factory<EditScannerContract.Presenter> { EditScannerPresenter(get(), get()) }
-    factory<ReviewDocContract.Presenter> { ReviewDocPresenter() }
+    factory<ReviewDocContract.Presenter> { ReviewDocPresenter(get()) }
 }
 
 val modules = listOf(managerModule, documentScanModule)

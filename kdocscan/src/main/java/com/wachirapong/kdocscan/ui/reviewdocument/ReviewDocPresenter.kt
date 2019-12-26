@@ -13,10 +13,11 @@ import java.io.FileOutputStream
 import java.lang.Exception
 import android.util.Log
 import androidx.exifinterface.media.ExifInterface
+import com.wachirapong.kdocscan.manager.FileManager
 import java.io.File
 
 
-class ReviewDocPresenter : ReviewDocContract.Presenter {
+class ReviewDocPresenter(private val fileManager: FileManager) : ReviewDocContract.Presenter {
 
     lateinit var view: ReviewDocContract.View
     lateinit var oriImg: Bitmap
@@ -103,18 +104,21 @@ class ReviewDocPresenter : ReviewDocContract.Presenter {
     }
 
     private fun saveImageToFile(img: Bitmap) {
-        val file = File("$saveFilePath/Pic2.jpg")
-        val outStream = FileOutputStream(file)
-        img.compress(Bitmap.CompressFormat.JPEG, 70, outStream)
-        outStream.flush()
-        outStream.close()
+        img.let {
+            fileManager.saveBitmapToStorage(
+                bitmap = img,
+                fileName = "pic2.jpg",
+                quality = 80,
+                onSuccess = {},
+                onFail = {}
+            )
+        }
     }
 
     private fun removeImage() {
-        val file = File("$saveFilePath/Pic1.jpg")
-        if (file.exists()) {
-            file.delete()
-        }
+        fileManager.removeImageFromStorage(
+            fileName = "Pic1.jpg"
+        )
     }
 
     private fun rotateBitmapImage(src: Mat, bm: Bitmap) {

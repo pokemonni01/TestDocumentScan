@@ -14,6 +14,7 @@ interface FileManager {
     fun saveBitmapToStorage(
         bitmap: Bitmap,
         fileName: String,
+        quality: Int,
         onSuccess: (file: File) -> Unit,
         onFail: (throwable: Throwable) -> Unit
     )
@@ -23,6 +24,10 @@ interface FileManager {
         onSuccess: (image: Bitmap) -> Unit,
         onFail: (throwable: Throwable) -> Unit
     )
+
+    fun removeImageFromStorage(
+        fileName: String
+    )
 }
 
 class FileManagerImpl(private val context: Context) : FileManager {
@@ -30,17 +35,18 @@ class FileManagerImpl(private val context: Context) : FileManager {
     override fun saveBitmapToStorage(
         bitmap: Bitmap,
         fileName: String,
+        quality: Int,
         onSuccess: (file: File) -> Unit,
         onFail: (throwable: Throwable) -> Unit
     ) {
         try {
             //create a file to write bitmap data
-            val file = File(ContextCompat.getExternalFilesDirs(context, null).first(), fileName)
+            val file = File(context.externalMediaDirs.first(), fileName)
             file.createNewFile()
 
             //Convert bitmap to byte array
             val bos = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bos)
             val bitmapData = bos.toByteArray()
 
             //write the bytes in file
@@ -74,6 +80,13 @@ class FileManagerImpl(private val context: Context) : FileManager {
             onSuccess(bitmap)
         } catch (e: Exception) {
             onFail(e)
+        }
+    }
+
+    override fun removeImageFromStorage(fileName: String) {
+        val file = File(context.externalMediaDirs.first(), fileName)
+        if (file.exists()) {
+            file.delete()
         }
     }
 }

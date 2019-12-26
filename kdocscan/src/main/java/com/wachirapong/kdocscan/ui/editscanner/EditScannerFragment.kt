@@ -17,6 +17,7 @@ import com.wachirapong.kdocscan.R
 import com.wachirapong.kdocscan.data.ScannedDocument
 import com.wachirapong.kdocscan.ui.BaseFragment
 import com.wachirapong.kdocscan.ui.scanner.ScannerFragment
+import com.wachirapong.kdocscan.ui.testscanner.KDocScannerActivity
 import kotlinx.android.synthetic.main.fragment_edit_scanner.*
 import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
@@ -81,16 +82,9 @@ class EditScannerFragment : BaseFragment(), EditScannerContract.View {
         btnNext?.setOnClickListener {
             presenter.cropImage(polygonView.pointsWithOutOrder)
         }
-    }
-
-    private fun imagePathBitmap(pathName: String): String {
-        val file = File(pathName)
-        val fileInputStream = FileInputStream(file)
-        val bitmap = BitmapFactory.decodeStream(fileInputStream)
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-        val byteArrayImg = byteArrayOutputStream.toByteArray()
-        return Base64.encodeToString(byteArrayImg, Base64.DEFAULT)
+        btnBack?.setOnClickListener {
+            (context as KDocScannerActivity).onBackPressed()
+        }
     }
 
     interface EditScannerListener {
