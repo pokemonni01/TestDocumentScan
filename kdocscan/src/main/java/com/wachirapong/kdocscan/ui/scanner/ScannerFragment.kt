@@ -38,6 +38,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
     private var listener: ScannerListener? = null
     private var capture: (() -> Unit)? = null
     private val listDoucumentPoint = mutableListOf<DocumentPoint>()
+    private var autoScan = true
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -74,10 +75,12 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
 
     override fun showAutoScan() {
         tvAutoScan?.text = getString(R.string.auto_scan)
+        autoScan = true
     }
 
     override fun showManualScan() {
         tvAutoScan?.text = getString(R.string.manual_scan)
+        autoScan = false
     }
 
     override fun onFlashTurnOn() {
@@ -120,6 +123,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
                 val cameraSelector = CameraSelector.Builder()
                     .requireLensFacing(LensFacing.BACK)
                     .build()
+                cameraProvider.unbindAll()
                 camera = cameraProvider.bindToLifecycle(
                     this as LifecycleOwner,
                     cameraSelector,
@@ -140,7 +144,7 @@ class ScannerFragment : BaseFragment(), ScannerContract.View {
                         val original = ImageUtil.imageToBitmap(image, rotationDegrees.toFloat())
                         val quadrilateral = imageProcessor.findDocument(original)
                         val isSameDocument = imageProcessor.isSameDocument(quadrilateral)
-                        if (isSameDocument) {
+                        if (isSameDocument && autoScan) {
                             quadrilateral?.points?.forEach { it ->
                                 listDoucumentPoint.add(DocumentPoint(it.x, it.y))
                             }
